@@ -104,6 +104,29 @@ function redisStore(args) {
   };
 
   /**
+   * Get a values for multiple keys.
+   * @method mget
+   * @param {String} keys - The cache keys
+   * @param {Object} [options] - The options (optional)
+   * @param {Function} cb - A callback that returns a potential error and the response
+   */
+  self.mget = function(keys, options, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+    }
+
+    connect(function(err, conn) {
+      if (err) {
+        return cb && cb(err);
+      }
+
+      conn.mget(keys, handleResponse(conn, cb, {
+        parse: true
+      }));
+    });
+  };
+
+  /**
    * Set a value for a given key.
    * @method set
    * @param {String} key - The cache key
