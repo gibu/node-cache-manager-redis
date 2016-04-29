@@ -159,6 +159,44 @@ function redisStore(args) {
   };
 
   /**
+   * Set multiple values.
+   * @method set
+   * @param {String} args - The cache key
+   * @param {Object} [options] - The options (optional)
+   * @param {Object} options.ttl - The ttl value
+   * @param {Function} [cb] - A callback that returns a potential error, otherwise null
+   */
+  self.mset = function(args, options, cb) {
+    if (typeof options === 'function') {
+      cb = options;
+      options = {};
+    }
+    options = options || {};
+
+    var ttl = (options.ttl || options.ttl === 0) ? options.ttl : redisOptions.ttl;
+
+    connect(function(err, conn) {
+      if (err) {
+        return cb && cb(err);
+      }
+
+      if (ttl) {
+        var argsLength = args.length;
+        var multi = conn.multi();
+        for(var i = 0; i < argsLength, i+2) {
+          var key = args[i];
+          var val = args[i+1];
+          multi.setex(key, ttl, val);
+        }
+        //conn.setex(key, ttl, val, handleResponse(conn, cb));
+        multi.exec(handleResponse(conn, cb));
+      } else {
+        conn.mset(args, handleResponse(conn, cb));
+      }
+    });
+  };
+
+  /**
    * Delete value of a given key
    * @method del
    * @param {String} key - The cache key
